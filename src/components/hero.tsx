@@ -1,6 +1,6 @@
 import { Button } from "./ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
-import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { ImageWithFallback } from "./common/ImageWithFallback";
 
 export function Hero() {
   return (
