@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI LinkedIn Profile Analyzer</title>
+    <style>
+       
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --primary: #0a66c2;
+            --secondary: #6a00ff;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg-light: #f3f6f9;
+            --bg-white: #fff;
+            --text-dark: #1f2937;
+            --text-gray: #6b7280;
+            --border-color: #e5e7eb;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-white);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255,255,255,0.95);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 0;
+        }
+        .navbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .navbar-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+        .navbar-links a {
+            color: var(--text-gray);
+            text-decoration: none;
+            transition: color .3s;
+            cursor: pointer;
+        }
+        .navbar-links a:hover {
+            color: var(--primary);
+        }
+        .btn {
+            padding: .75rem 1.5rem;
+            border: none;
+            border-radius: .75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 0 20px rgba(10,102,194,0.4);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(10,102,194,0.6);
+        }
+        .btn-outline {
+            border: 2px solid white;
+            color: white;
+            background: transparent;
+        }
+        .btn-outline:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .hero {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding-top: 4rem;
+        }
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+        .hero-text h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+        .hero-text p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            opacity: .95;
+        }
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .hero-image img {
+            width: 100%;
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px rgba(0,0,0,.3);
+        }
+        .features {
+            padding: 5rem 0;
+            background: white;
+        }
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        .section-header h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        .section-header p {
+            font-size: 1.25rem;
+            color: var(--text-gray);
+        }
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
+        .feature-card {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: all .3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(10,102,194,.2);
+        }
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .feature-card h3 {
+            margin-bottom: 1rem;
+        }
+        .feature-card p {
+            color: var(--text-gray);
+        }
+        .how-it-works {
+            padding: 5rem 0;
+            background: var(--bg-light);
+        }
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        .step {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 2rem;
+        }
+        .step-number {
+            font-size: 3rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: .5;
+            margin-bottom: 1rem;
+        }
+        .step h3 {
+            margin-bottom: 1rem;
+        }
+        .step p {
+            color: var(--text-gray);
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .label {
+            display: block;
+            margin-bottom: .5rem;
+            font-weight: 500;
+        }
+        .input,
+        .textarea {
+            width: 100%;
+            padding: .75rem;
+            border: 1px solid var(--border-color);
+            border-radius: .75rem;
+            font-size: 1rem;
+            transition: all .3s ease;
+            font-family: inherit;
+        }
+        .input:focus,
+        .textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(10,102,194,0.1);
+        }
+        .textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        .auth-page {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+        .auth-left {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .auth-left img {
+            max-width: 100%;
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        }
+        .auth-right {
+            background: var(--bg-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .auth-form {
+            width: 100%;
+            max-width: 26rem;
+        }
+        .auth-form-box {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+        .auth-title {
+            font-size: 1.75rem;
+            margin-bottom: .5rem;
+            text-align: center;
+        }
+        .auth-subtitle {
+            color: var(--text-gray);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .auth-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--text-gray);
+        }
+        .auth-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+        }
+        .stat-icon {
+            font-size: 2rem;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 0.5rem;
+            background: var(--border-color);
+            border-radius: 0.25rem;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+        .upload-section {
+            max-width: 40rem;
+            margin: 2rem auto;
+        }
+        .upload-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .icon {
+            width: 5rem;
+            height: 5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 1rem;
+        }
+        .form-container {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+        .results-section {
+            max-width: 50rem;
+            margin: 2rem auto;
+        }
+        .score-card {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+        .score-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .score-box {
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--bg-light);
+            border-radius: 1rem;
+        }
+        .score-box.improved {
+            background: linear-gradient(to bottom, rgba(16,185,129,0.1), rgba(10,102,194,0.1));
+            border: 2px solid var(--success);
+        }
+        .problems-list,
+        .suggestions-list {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+        .problem-item,
+        .suggestion-item {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0.75rem;
+            border-left: 4px solid;
+            display: flex;
+            gap: 1rem;
+        }
+        .problem-item {
+            background: rgba(239,68,68,0.05);
+            border-color: var(--danger);
+        }
+        .suggestion-item {
+            background: rgba(59,130,246,0.05);
+            border-color: #3b82f6;
+        }
+        .enhanced-content {
+            background: linear-gradient(135deg, rgba(10,102,194,0.05), rgba(106,0,255,0.05));
+            border-radius: 1.5rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+        .enhanced-item {
+            background: rgba(255,255,255,0.5);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .enhanced-item h4 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+        @media (max-width: 768px) {
+            .hero-content,
+            .auth-page,
+            .score-comparison {
+                grid-template-columns: 1fr;
+            }
+            .auth-left {
+                display: none;
+            }
+            .navbar-links {
+                display: none;
+            }
+            .hero-text h1 {
+                font-size: 2rem;
+            }
+        }
+        @media (max-width: 640px) {
+            .hero-text h1 {
+                font-size: 1.5rem;
+            }
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+            .hero-buttons {
+                flex-direction: column;
+            }
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+
+<body>
+    <div id="app"></div>
+
+    <script>
+        const app = {
+            currentPage: "landing",
+            user: null,
+            analysisResults: null,
+            init() {
+                this.setupEventListeners();
+                this.render();
+            },
+            setupEventListeners() {
+                document.addEventListener("click", (e) => {
+                    const target = e.target.closest("[data-action]");
+                    if (target) {
+                        const action = target.dataset.action;
+                        const param = target.dataset.param;
+                        this[action]?.(param);
+                    }
+                });
+            },
+            navigate(page) {
+                this.currentPage = page;
+                this.render();
+            },
+            render() {
+                const root = document.getElementById("app");
+                switch (this.currentPage) {
+                    case "landing":
+                        root.innerHTML = this.renderLanding();
+                        break;
+                    case "login":
+                        root.innerHTML = this.renderLogin();
+                        this.attachFormListeners();
+                        break;
+                    case "signup":
+                        root.innerHTML = this.renderSignup();
+                        this.attachFormListeners();
+                        break;
+                    case "dashboard":
+                        root.innerHTML = this.renderDashboard();
+                        break;
+                    case "upload":
+                        root.innerHTML = this.renderUpload();
+                        this.attachFormListeners();
+                        break;
+                    case "results":
+                        root.innerHTML = this.renderResults();
+                        break;
+                    default:
+                        root.innerHTML = this.renderLanding();
+                }
+            },
+            attachFormListeners() {
+                setTimeout(() => {
+                    const loginForm = document.getElementById("loginForm");
+                    const signupForm = document.getElementById("signupForm");
+                    const analysisForm = document.getElementById("analysisForm");
+                    if (loginForm)
+                        loginForm.addEventListener("submit", (e) => {
+                            e.preventDefault();
+                            this.navigate("dashboard");
+                        });
+                    if (signupForm)
+                        signupForm.addEventListener("submit", (e) => {
+                            e.preventDefault();
+                            this.navigate("dashboard");
+                        });
+                    if (analysisForm)
+                        analysisForm.addEventListener("submit", (e) => {
+                            e.preventDefault();
+                            this.handleAnalysis();
+                        });
+                }, 0);
+            },
+
+            
+            async handleAnalysis() {
+                const btn = document.querySelector("#analysisForm button");
+                const originalText = btn.innerText;
+                btn.innerText = "AI is Analyzing... Please wait...";
+                btn.disabled = true;
+            
+                // Form se data uthana
+                const profileData = {
+                    profile_text: `
+                        Name: ${document.getElementById("name").value}
+                        Headline: ${document.getElementById("headline").value}
+                        About: ${document.getElementById("about").value}
+                        Skills: ${document.getElementById("skills").value}
+                        Experience: ${document.getElementById("experience").value}
+                    `
+                };
+            
+                try {
+                    const res = await fetch("http://127.0.0.1:5000/api/analyze", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(profileData),
+                    });
+            
+                    const data = await res.json();
+            
+                    if (data.error) {
+                        alert("AI Error: " + data.error);
+                    } else {
+                        // Backend se aaye huye JSON data ko yahan set kar rahe hain
+                        this.analysisResults = {
+                            scoreBefore: data.score_before,
+                            scoreAfter: data.score_after,
+                            problems: data.problems,
+                            suggestions: data.suggestions,
+                            enhanced: {
+                                headline: data.enhanced_headline,
+                                about: data.enhanced_about,
+                                skills: data.enhanced_skills,
+                                experience: data.enhanced_experience
+                            }
+                        };
+                        this.navigate("results");
+                    }
+                } catch (err) {
+                    alert("Server connect nahi ho raha! Check karein Server.py chal raha hai ya nahi.");
+                } finally {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }
+            },
+
+            
+            downloadReport() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const r = this.analysisResults;
+                let y = 10;
+                doc.setFontSize(18);
+                doc.text("LinkedIn Profile Analysis Report", 10, y);
+                y += 10;
+                doc.setFontSize(14);
+                doc.text("Enhanced Content:", 10, y);
+                y += 8;
+                doc.setFontSize(12);
+                doc.text(`Headline: ${r.enhanced.headline}`, 10, y);
+                y += 8;
+                doc.text("About:", 10, y);
+                y += 6;
+                const aboutLines = doc.splitTextToSize(r.enhanced.about, 180);
+                doc.text(aboutLines, 10, y);
+                y += aboutLines.length * 7;
+                doc.text(`Skills: ${r.enhanced.skills}`, 10, y);
+                y += 8;
+                doc.text("Experience:", 10, y);
+                y += 6;
+                const expLines = doc.splitTextToSize(r.enhanced.experience, 180);
+                doc.text(expLines, 10, y);
+                y += expLines.length * 7;
+                y += 5;
+                doc.setFontSize(14);
+                doc.text("Detected Problems:", 10, y);
+                y += 8;
+                doc.setFontSize(12);
+                r.problems.forEach((p) => {
+                    const probLines = doc.splitTextToSize("- " + p, 180);
+                    doc.text(probLines, 10, y);
+                    y += probLines.length * 7;
+                });
+                y += 5;
+                doc.setFontSize(14);
+                doc.text("Suggestions:", 10, y);
+                y += 8;
+                doc.setFontSize(12);
+                r.suggestions.forEach((s) => {
+                    const sugLines = doc.splitTextToSize("- " + s, 180);
+                    doc.text(sugLines, 10, y);
+                    y += sugLines.length * 7;
+                });
+                doc.save("LinkedIn_Profile_Analysis_Report.pdf");
+            },
+            renderLanding() {
+                return `
+                <nav class="navbar">
+                    <div class="navbar-content container">
+                        <a class="navbar-logo" data-action="navigate" data-param="landing">🧠 AI Analyzer</a>
+                        <ul class="navbar-links">
+                            <li><a data-action="navigate" data-param="landing">Home</a></li>
+                            <li><a>Features</a></li>
+                            <li><a>How It Works</a></li>
+                        </ul>
+                        <div style="display:flex;gap:1rem;">
+                            <button class="btn btn-secondary" data-action="navigate" data-param="login">LOGIN</button>
+                            <button class="btn btn-primary" data-action="navigate" data-param="signup">SIGNUP</button>
+                        </div>
+                    </div>
+                </nav>
+                <section class="hero">
+                    <div class="container hero-content">
+                        <div class="hero-text">
+                            <h1>Optimize Your LinkedIn Profile with AI</h1>
+                            <p>Upload your LinkedIn data to get smart recruiter insights and personalized recommendations.</p>
+                            <div class="hero-buttons">
+                                <button class="btn btn-primary btn-lg" data-action="navigate" data-param="upload">ANALYZE NOW</button>
+                                <button class="btn btn-outline btn-lg">▶ WATCH DEMO</button>
+                            </div>
+                        </div>
+                        <div class="hero-image">
+                            <img src="https://images.unsplash.com/photo-1655393001768-d946c97d6fd1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=400" alt="AI"/>
+                        </div>
+                    </div>
+                </section>
+                <section class="features">
+                    <div class="container">
+                        <div class="section-header">
+                            <h2>Powerful Features</h2>
+                            <p>Everything you need to stand out</p>
+                        </div>
+                        <div class="grid grid-3">
+                            <div class="feature-card">
+                                <div class="feature-icon">🤖</div>
+                                <h3>Smart AI</h3>
+                                <p>Get personalized recommendations powered by advanced AI</p>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-icon">🎯</div>
+                                <h3>Recruiter Score</h3>
+                                <p>See how recruiters view your profile</p>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-icon">📊</div>
+                  <h3>Detailed Reports</h3>
+                  <p>Export analytics in PDF or Excel</p>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section class="how-it-works" style="background: var(--bg-light);">
+            <div class="container">
+              <div class="section-header">
+                <h2>How It Works</h2>
+              </div>
+              <div class="steps">
+                <div class="step">
+                  <div class="step-number">01</div>
+                  <h3>Upload Profile</h3>
+                  <p>Share your LinkedIn data</p>
+                </div>
+                <div class="step">
+                  <div class="step-number">02</div>
+                  <h3>AI Analyzes</h3>
+                  <p>Get insights in seconds</p>
+                </div>
+                <div class="step">
+                  <div class="step-number">03</div>
+                  <h3>Get Reports</h3>
+                  <p>Receive recommendations</p>
+                </div>
+              </div>
+            </div>
+          </section>
+                `;
+            },
+            renderLogin() {
+                return `
+                <div class="auth-page">
+                    <div class="auth-left">
+                        <img src="https://images.unsplash.com/photo-1644088379091-d574269d422f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=400" alt="Login"/>
+                    </div>
+                    <div class="auth-right">
+                        <div class="auth-form">
+                            <div class="auth-form-box">
+                                <h1 class="auth-title">Welcome Back!</h1>
+                                <p class="auth-subtitle">Login to continue</p>
+                                <form id="loginForm" style="display:flex;flex-direction:column;gap:1rem;">
+                                    <div class="form-group"><label class="label">Email</label><input type="email" class="input" required/></div>
+                                    <div class="form-group"><label class="label">Password</label><input type="password" class="input" required/></div>
+                                    <button type="submit" class="btn btn-primary btn-lg">LOGIN</button>
+                                </form>
+                                <div class="auth-footer">New here? <a data-action="navigate" data-param="signup">Create account</a></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            },
+            renderSignup() {
+                return `
+                <div class="auth-page">
+                    <div class="auth-left">
+                        <img src="https://images.unsplash.com/photo-1644088379091-d574269d422f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=400" alt="Signup"/>
+                    </div>
+                    <div class="auth-right">
+                        <div class="auth-form">
+                            <div class="auth-form-box">
+                                <h1 class="auth-title">Join Us</h1>
+                                <p class="auth-subtitle">Create an account</p>
+                                <form id="signupForm" style="display:flex;flex-direction:column;gap:1rem;">
+                                    <div class="form-group"><label class="label">Full Name</label><input type="text" class="input" required/></div>
+                                    <div class="form-group"><label class="label">Email</label><input type="email" class="input" required/></div>
+                                    <div class="form-group"><label class="label">Password</label><input type="password" class="input" required/></div>
+                                    <button type="submit" class="btn btn-primary btn-lg">SIGNUP</button>
+                                </form>
+                                <div class="auth-footer">Already have account? <a data-action="navigate" data-param="login">Login here</a></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            },
+           //backend conect 
+           attachFormListeners() {
+            setTimeout(() => {
+                const loginForm = document.getElementById("loginForm");
+                const signupForm = document.getElementById("signupForm");
+                const analysisForm = document.getElementById("analysisForm");
+        
+                if (loginForm) {
+                    loginForm.addEventListener("submit", async (e) => {
+                        e.preventDefault();
+                        const email = loginForm.querySelector('input[type="email"]').value;
+                        const password = loginForm.querySelector('input[type="password"]').value;
+        
+                        try {
+                            const res = await fetch("http://127.0.0.1:5000/api/login", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ email, password }),
+                            });
+                            const data = await res.json();
+                            if (data.error) alert("Login failed: " + data.error);
+                            else {
+                                alert("Login successful!");
+                                this.navigate("dashboard");
+                            }
+                        } catch (err) {
+                            alert("Error occured during login.");
+                        }
+                    });
+                }
+        
+                if (signupForm) {
+                    signupForm.addEventListener("submit", async (e) => {
+                        e.preventDefault();
+                        const name = signupForm.querySelector('input[type="text"]').value;
+                        const email = signupForm.querySelector('input[type="email"]').value;
+                        const password = signupForm.querySelector('input[type="password"]').value;
+        
+                        try {
+                            const res = await fetch("http://127.0.0.1:5000/api/signup", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ name, email, password }),
+                            });
+                            const data = await res.json();
+                            if (data.error) alert("Signup failed: " + data.error);
+                            else {
+                                alert("Signup successful! You can now login.");
+                                this.navigate("login");
+                            }
+                        } catch (err) {
+                            alert("Error occured during signup.");
+                        }
+                    });
+                }
+        
+                if (analysisForm) {
+                    analysisForm.addEventListener("submit", (e) => {
+                        e.preventDefault();
+                        this.handleAnalysis();
+                    });
+                }
+            }, 0);
+        },
+        //yaha tk
+            
+            renderDashboard() {
+                return `
+                <div style="background: var(--bg-light); min-height: 100vh; padding: 2rem;">
+                    <div style="margin-bottom:2rem;">
+                        <h1>Welcome back! 👋</h1>
+                        <p style="color: var(--text-gray);">Here's your profile performance</p>
+                    </div>
+                    <div class="grid grid-3" style="margin-bottom:2rem;">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div>
+                                    <div class="stat-label">Profile Score</div>
+                                    <div class="stat-value">88%</div>
+                                </div>
+                                <div class="stat-icon">🎯</div>
+                            </div>
+                            <div class="progress-bar"><div class="progress-fill" style="width: 88%;"></div></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div>
+                                    <div class="stat-label">Profile Views</div>
+                                    <div class="stat-value">2,847</div>
+                                </div>
+                                <div class="stat-icon">👁️</div>
+                            </div>
+                            <div class="progress-bar"><div class="progress-fill" style="width: 75%;"></div></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div>
+                                    <div class="stat-label">Skill Match</div>
+                                    <div class="stat-value">92%</div>
+                                </div>
+                                <div class="stat-icon">📈</div>
+                            </div>
+                            <div class="progress-bar"><div class="progress-fill" style="width: 92%;"></div></div>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:1rem;justify-content:center;">
+                        <button class="btn btn-secondary" data-action="navigate" data-param="landing">Back Home</button>
+                        <button class="btn btn-primary" data-action="navigate" data-param="upload">Analyze Profile</button>
+                    </div>
+                </div>
+                `;
+            },
+            renderUpload() {
+                return `
+                <div style="background: var(--bg-light); min-height: 100vh; padding: 2rem;">
+                    <div class="upload-section">
+                        <div class="upload-header">
+                            <div class="icon">🧠</div>
+                            <h1>AI Profile Analyzer</h1>
+                            <p>Paste your LinkedIn sections and get AI insights</p>
+                        </div>
+                        <div class="form-container">
+                            <form id="analysisForm" style="display:flex;flex-direction:column;gap:1.5rem;">
+                                <div class="form-group"><label class="label">Full Name</label><input type="text" class="input" id="name" placeholder="e.g., Rahul Kumar" required></div>
+                                <div class="form-group"><label class="label">Headline</label><input type="text" class="input" id="headline" placeholder="e.g., Senior Software Engineer" required></div>
+                                <div class="form-group"><label class="label">About Section</label><textarea class="textarea" id="about" placeholder="Paste your about section..."></textarea></div>
+                                <div class="form-group"><label class="label">Skills</label><input type="text" class="input" id="skills" placeholder="e.g., AI/ML, Cloud Computing, Leadership"></div>
+                                <div class="form-group"><label class="label">Experience</label><textarea class="textarea" id="experience" placeholder="Paste your experience..."></textarea></div>
+                                <button type="submit" class="btn btn-primary btn-lg">ANALYZE NOW ⚡</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                `;
+            },
+            renderResults() {
+                const r = this.analysisResults;
+                const scoreImprovement = r.scoreAfter - r.scoreBefore;
+            
+                return `
+                <div style="background: var(--bg-light); min-height: 100vh; padding: 2rem;">
+                    <div class="results-section">
+                        <h1 style="margin-bottom: 2rem;">📊 Analysis Results</h1>
+                        
+                        <div class="score-card">
+                            <div class="score-comparison">
+                                <div class="score-box">
+                                    <p style="color: var(--text-gray); margin-bottom: 1rem;">Before</p>
+                                    <div style="font-size: 2.5rem; font-weight: 700; color: #ef4444;">${r.scoreBefore}%</div>
+                                </div>
+                                <div class="score-box improved" style="border: 2px solid #10b981;">
+                                    <p style="color: var(--text-gray); margin-bottom: 1rem;">After AI Enhancement</p>
+                                    <div style="font-size: 2.5rem; font-weight: 700; color: #10b981;">+${scoreImprovement}%</div>
+                                </div>
+                            </div>
+                        </div>
+            
+                        <div class="problems-list" style="background: white; padding: 2rem; border-radius: 1.5rem; margin-bottom: 2rem;">
+                            <h2 style="margin-bottom: 1.5rem;">⚠️ Detected Problems</h2>
+                            ${r.problems.map(p => `
+                                <div style="background: #fff5f5; border-left: 5px solid #ef4444; padding: 1rem; margin-bottom: 0.8rem; border-radius: 10px; display: flex; align-items: center; gap: 10px;">
+                                    <span style="color: #ef4444;">❌</span> <p style="margin:0;">${p}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+            
+                        <div class="suggestions-list" style="background: white; padding: 2rem; border-radius: 1.5rem; margin-bottom: 2rem;">
+                            <h2 style="margin-bottom: 1.5rem;">💡 AI Suggestions</h2>
+                            ${r.suggestions.map(s => `
+                                <div style="background: #f0f7ff; border-left: 5px solid #3b82f6; padding: 1rem; margin-bottom: 0.8rem; border-radius: 10px; display: flex; align-items: center; gap: 10px;">
+                                    <span style="color: #3b82f6;">💡</span> <p style="margin:0;">${s}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+            
+                        <div class="enhanced-content" style="background: white; padding: 2rem; border-radius: 1.5rem;">
+                            <h2 style="margin-bottom: 1.5rem;">✨ Enhanced Content</h2>
+                            <div class="enhanced-item"><h4>Headline</h4><p>${r.enhanced.headline}</p></div>
+                            <div class="enhanced-item"><h4>About</h4><p style="white-space: pre-wrap;">${r.enhanced.about}</p></div>
+                            <div class="enhanced-item"><h4>Skills</h4><p>${r.enhanced.skills}</p></div>
+                            <div class="enhanced-item"><h4>Experience</h4><p style="white-space: pre-wrap;">${r.enhanced.experience}</p></div>
+                        </div>
+            
+                        <div style="display:flex; gap:1rem; justify-content:center; margin-top:2rem;">
+                            <button class="btn btn-secondary" data-action="navigate" data-param="dashboard">Dashboard</button>
+                            <button class="btn btn-primary" data-action="navigate" data-param="upload">Analyze Again</button>
+                            <button class="btn btn-primary" data-action="downloadReport" style="background: #10b981;">Download PDF Report</button>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
+        };
+        document.addEventListener("DOMContentLoaded", () => {
+            app.init();
+        });
+    </script>
+</body>
+
+</html>

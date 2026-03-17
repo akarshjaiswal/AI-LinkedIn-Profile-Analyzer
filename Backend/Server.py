@@ -1,0 +1,111 @@
+import json
+from flask import Flask, request, jsonify, session
+from flask_pymongo import PyMongo
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_cors import CORS
+from google import genai  # Modern Gemini SDK (2026)
+
+app = Flask(__name__)
+app.secret_key = 'your_secret_key'  # Session handle karne ke liye
+app.config['MONGO_URI'] = 'mongodb://localhost:27017/linkedin_db'
+
+mongo = PyMongo(app)
+CORS(app)  # Frontend/Backend connection ke liye zaroori [cite: 4]
+
+# Gemini Client Setup
+# Yahan apni asli API Key paste karein
+client = genai.Client(api_key="AIzaSyD4yQNY2BSAXMWzK1WG2VAdeY6sMkDvO8o")
+
+users = mongo.db.users
+
+# ------------- SIGNUP API -----------------
+@app.route('/api/signup', methods=['POST'])
+def signup():
+    data = request.get_json()
+    name = data.get('name')
+    email = data.get('email')
+    password = data.get('password')
+
+    if users.find_one({'email': email}):
+        return jsonify({'error': 'Email already exists'}), 400
+
+    hashed_password = generate_password_hash(password)
+    users.insert_one({
+        'name': name,
+        'email': email,
+        'password': hashed_password
+    })
+    return jsonify({'message': 'Signup successful'}), 201
+
+# ------------- LOGIN API -------------------
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+
+    user = users.find_one({'email': email})
+    if user and check_password_hash(user['password'], password):
+        session['user'] = {'name': user['name'], 'email': user['email']}
+        return jsonify({'message': 'Login successful', 'user': session['user']}), 200
+    else:
+        return jsonify({'error': 'Invalid email or password'}), 401
+
+# ------------- LINKEDIN ANALYSIS API (AI Score & JSON) -----------------
+@app.route('/api/analyze', methods=['POST'])
+def analyze():
+    data = request.get_json()
+    profile_text = data.get('profile_text')
+
+    if not profile_text:
+        return jsonify({'error': 'Profile data missing'}), 400
+
+    # Prompt updated for Score, Problems, and Sections
+    structured_prompt = f"""
+    Analyze the following LinkedIn profile and return the response ONLY in JSON format.
+    
+    1. Calculate 'score_before' (0-100) based on current quality.
+    2. Calculate 'score_after' (0-100) potential quality after fixes.
+    3. Provide exactly 5 specific 'problems'.
+    4. Provide exactly 5 specific 'suggestions'.
+    5. Provide 'enhanced_headline', 'enhanced_about', 'enhanced_skills', and 'enhanced_experience'.
+
+    JSON Structure:
+    {{
+      "score_before": number,
+      "score_after": number,
+      "problems": ["string"],
+      "suggestions": ["string"],
+      "enhanced_headline": "string",
+      "enhanced_about": "string",
+      "enhanced_skills": "string",
+      "enhanced_experience": "string"
+    }}
+
+    Profile Data:
+    {profile_text}
+    """
+
+    try:
+        # Gemini 2.5 Flash call with JSON config
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=structured_prompt,
+            config={'response_mime_type': 'application/json'}
+        )
+        
+        # AI response ko JSON mein convert karna
+        ai_data = json.loads(response.text)
+        return jsonify(ai_data), 200
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ------------- LOGOUT API -------------------
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    session.pop('user', None)
+    return jsonify({'message': 'Logged out successfully'}), 200
+
+if __name__ == '__main__':
+    app.run(debug=True)
