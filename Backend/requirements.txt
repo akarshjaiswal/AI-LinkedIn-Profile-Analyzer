@@ -2,6 +2,6 @@ flask
 werkzeug
 flask-cors
 flask-pymongo
-google-generativeai
+google-genai
 gunicorn
 python-dotenv
