@@ -8,7 +8,7 @@ from google import genai  # Modern Gemini SDK (2026)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'any_random_string_for_local')
-app.config['MONGO_URI'] = os.environ.get('MONGO_URI', 'mongodb+srv://akarshjaiswal01:Akarsh@123@linkedinanalyzer.6ysn5qy.mongodb.net/linkedin_db?retryWrites=true&w=majority')
+app.config['MONGO_URI'] = os.environ.get('MONGO_URI', 'mongodb+srv://akarshjaiswal01:Akarsh123@linkedinanalyzer.6ysn5qy.mongodb.net/?appName=LinkedinAnalyzer')
 mongo = PyMongo(app)
 CORS(app)  # Frontend/Backend connection ke liye zaroori [cite: 4]
 
