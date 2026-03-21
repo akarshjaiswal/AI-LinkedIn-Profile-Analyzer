@@ -1,4 +1,5 @@
 import json
+import os
 from flask import Flask, request, jsonify, session
 from flask_pymongo import PyMongo
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -6,17 +7,22 @@ from flask_cors import CORS
 from google import genai  # Modern Gemini SDK (2026)
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Session handle karne ke liye
-app.config['MONGO_URI'] = 'mongodb://localhost:27017/linkedin_db'
-
+app.secret_key = os.environ.get('SECRET_KEY', 'any_random_string_for_local')
+app.config['MONGO_URI'] = os.environ.get('MONGO_URI', 'mongodb+srv://akarshjaiswal01:Akarsh@123@linkedinanalyzer.6ysn5qy.mongodb.net/linkedin_db?retryWrites=true&w=majority')
 mongo = PyMongo(app)
 CORS(app)  # Frontend/Backend connection ke liye zaroori [cite: 4]
 
 # Gemini Client Setup
 # Yahan apni asli API Key paste karein
-client = genai.Client(api_key="AIzaSyD4yQNY2BSAXMWzK1WG2VAdeY6sMkDvO8o")
+api_key = os.environ.get("GEMINI_API_KEY", "AIzaSyD4yQNY2BSAXMWzK1WG2VAdeY6sMkDvO8o")
+client = genai.Client(api_key=api_key)
 
 users = mongo.db.users
+
+# ------------- HOME ROUTE (Testing ke liye upar rakha hai) -----------------
+@app.route('/')
+def home():
+    return "Backend is Running Successfully on Render!"
 
 # ------------- SIGNUP API -----------------
 @app.route('/api/signup', methods=['POST'])
@@ -107,5 +113,8 @@ def logout():
     session.pop('user', None)
     return jsonify({'message': 'Logged out successfully'}), 200
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# ------------- SERVER START (Eshse PORT fix ho jayega) -------------------
+if __name__ == "__main__":
+    # Render hamesha apna PORT variable khud deta hai
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)

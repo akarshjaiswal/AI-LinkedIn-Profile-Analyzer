@@ -1,4 +1,7 @@
 flask
-flask-pymongo
 werkzeug
 flask-cors
+flask-pymongo
+google-generativeai
+gunicorn
+python-dotenv
