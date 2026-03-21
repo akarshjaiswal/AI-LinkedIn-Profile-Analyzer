@@ -8,7 +8,7 @@ from google import genai  # Modern Gemini SDK (2026)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'any_random_string_for_local')
-app.config['MONGO_URI'] = os.environ.get('MONGO_URI', 'mongodb+srv://akarshjaiswal01:Akarsh123@linkedinanalyzer.6ysn5qy.mongodb.net/?appName=LinkedinAnalyzer')
+app.config["MONGO_URI"] = os.environ.get("MONGO_URI")
 mongo = PyMongo(app)
 CORS(app)  # Frontend/Backend connection ke liye zaroori [cite: 4]
 
@@ -17,7 +17,8 @@ CORS(app)  # Frontend/Backend connection ke liye zaroori [cite: 4]
 api_key = os.environ.get("GEMINI_API_KEY", "AIzaSyD4yQNY2BSAXMWzK1WG2VAdeY6sMkDvO8o")
 client = genai.Client(api_key=api_key)
 
-users = mongo.db.users
+db = mongo.db
+users = db.users
 
 # ------------- HOME ROUTE (Testing ke liye upar rakha hai) -----------------
 @app.route('/')
@@ -118,3 +119,13 @@ if __name__ == "__main__":
     # Render hamesha apna PORT variable khud deta hai
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
+    
+    
+    #---------------data base ----------------
+@app.route('/test-db')
+def test_db():
+    try:
+        count = users.count_documents({})
+        return jsonify({"message": "MongoDB Connected!", "user_count": count}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
