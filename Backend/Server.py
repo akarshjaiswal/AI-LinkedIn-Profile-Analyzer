@@ -4,128 +4,88 @@ from flask import Flask, request, jsonify, session
 from flask_pymongo import PyMongo
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS
-from google import genai  # Modern Gemini SDK (2026)
+from google import genai
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'any_random_string_for_local')
+
+# MongoDB Configuration
 app.config["MONGO_URI"] = os.environ.get("MONGO_URI")
 mongo = PyMongo(app)
-CORS(app)  # Frontend/Backend connection ke liye zaroori [cite: 4]
+CORS(app)
+
+# Global variable for users
+db = None
+users = None
+
+# Database connection logic
+with app.app_context():
+    try:
+        db = mongo.db
+        if db is not None:
+            users = db.users
+            print("✅ MongoDB Connected Successfully!")
+        else:
+            print("❌ MongoDB connection failed - Check your URI in Render settings")
+    except Exception as e:
+        print(f"❌ Connection Error: {e}")
 
 # Gemini Client Setup
-# Yahan apni asli API Key paste karein
 api_key = os.environ.get("GEMINI_API_KEY", "AIzaSyD4yQNY2BSAXMWzK1WG2VAdeY6sMkDvO8o")
 client = genai.Client(api_key=api_key)
 
-db = mongo.db
-users = db.users
+# ------------- ROUTES -----------------
 
-# ------------- HOME ROUTE (Testing ke liye upar rakha hai) -----------------
 @app.route('/')
 def home():
     return "Backend is Running Successfully on Render!"
 
-# ------------- SIGNUP API -----------------
 @app.route('/api/signup', methods=['POST'])
 def signup():
+    if users is None: return jsonify({'error': 'Database not connected'}), 500
     data = request.get_json()
-    name = data.get('name')
-    email = data.get('email')
-    password = data.get('password')
-
-    if users.find_one({'email': email}):
-        return jsonify({'error': 'Email already exists'}), 400
-
-    hashed_password = generate_password_hash(password)
-    users.insert_one({
-        'name': name,
-        'email': email,
-        'password': hashed_password
-    })
+    name, email, password = data.get('name'), data.get('email'), data.get('password')
+    if users.find_one({'email': email}): return jsonify({'error': 'Email already exists'}), 400
+    users.insert_one({'name': name, 'email': email, 'password': generate_password_hash(password)})
     return jsonify({'message': 'Signup successful'}), 201
 
-# ------------- LOGIN API -------------------
 @app.route('/api/login', methods=['POST'])
 def login():
+    if users is None: return jsonify({'error': 'Database not connected'}), 500
     data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
-
+    email, password = data.get('email'), data.get('password')
     user = users.find_one({'email': email})
     if user and check_password_hash(user['password'], password):
         session['user'] = {'name': user['name'], 'email': user['email']}
         return jsonify({'message': 'Login successful', 'user': session['user']}), 200
-    else:
-        return jsonify({'error': 'Invalid email or password'}), 401
+    return jsonify({'error': 'Invalid email or password'}), 401
 
-# ------------- LINKEDIN ANALYSIS API (AI Score & JSON) -----------------
 @app.route('/api/analyze', methods=['POST'])
 def analyze():
     data = request.get_json()
     profile_text = data.get('profile_text')
-
-    if not profile_text:
-        return jsonify({'error': 'Profile data missing'}), 400
-
-    # Prompt updated for Score, Problems, and Sections
-    structured_prompt = f"""
-    Analyze the following LinkedIn profile and return the response ONLY in JSON format.
+    if not profile_text: return jsonify({'error': 'Profile data missing'}), 400
     
-    1. Calculate 'score_before' (0-100) based on current quality.
-    2. Calculate 'score_after' (0-100) potential quality after fixes.
-    3. Provide exactly 5 specific 'problems'.
-    4. Provide exactly 5 specific 'suggestions'.
-    5. Provide 'enhanced_headline', 'enhanced_about', 'enhanced_skills', and 'enhanced_experience'.
-
-    JSON Structure:
-    {{
-      "score_before": number,
-      "score_after": number,
-      "problems": ["string"],
-      "suggestions": ["string"],
-      "enhanced_headline": "string",
-      "enhanced_about": "string",
-      "enhanced_skills": "string",
-      "enhanced_experience": "string"
-    }}
-
-    Profile Data:
-    {profile_text}
-    """
-
+    structured_prompt = f"Analyze this LinkedIn profile and return JSON: {profile_text}"
     try:
-        # Gemini 2.5 Flash call with JSON config
         response = client.models.generate_content(
             model="gemini-2.5-flash",
             contents=structured_prompt,
             config={'response_mime_type': 'application/json'}
         )
-        
-        # AI response ko JSON mein convert karna
-        ai_data = json.loads(response.text)
-        return jsonify(ai_data), 200
-    
+        return jsonify(json.loads(response.text)), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ------------- LOGOUT API -------------------
-@app.route('/api/logout', methods=['POST'])
-def logout():
-    session.pop('user', None)
-    return jsonify({'message': 'Logged out successfully'}), 200
-
-# ------------- SERVER START (Eshse PORT fix ho jayega) -------------------
-if __name__ == "__main__":
-    # Render hamesha apna PORT variable khud deta hai
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
-    
-    
-    #---------------data base ----------------
 @app.route('/test-db')
 def test_db():
+    if users is None: return jsonify({"error": "Database not initialized"}), 500
     try:
-        count = users.count_documents({})
-        return jsonify({"message": "MongoDB Connected!", "user_count": count}), 200
+        return jsonify({"message": "MongoDB Connected!", "user_count": users.count_documents({})}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+# ------------- START SERVER -------------
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
