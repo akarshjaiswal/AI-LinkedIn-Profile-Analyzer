@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>AI LinkedIn Profile Analyzer</title>
+
+    //---------------------------------------CSS--------------------
     <style>
        
         * {
@@ -506,6 +508,8 @@
                         root.innerHTML = this.renderLanding();
                 }
             },
+
+            //---------------------LANDING PAGE---------------------------------
             renderLanding() {
                 return `
                 <nav class="navbar">
@@ -588,6 +592,8 @@
           </section>
                 `;
             },
+
+            //-----------------------------LOGIN PAGE-----------------------------
             renderLogin() {
                 return `
                 <div class="auth-page">
@@ -611,6 +617,8 @@
                 </div>
                 `;
             },
+
+            //----------------------------SINGUP PAGE------------------------------
             renderSignup() {
                 return `
                 <div class="auth-page">
@@ -636,19 +644,27 @@
                 `;
             },
 
-           //backend conect 
+           //backend cannect 
            attachFormListeners() {
             setTimeout(() => {
                 const loginForm = document.getElementById("loginForm");
                 const signupForm = document.getElementById("signupForm");
                 const analysisForm = document.getElementById("analysisForm");
         
+                // ------------------------LOGIN Logic---------------------------------
                 if (loginForm) {
                     loginForm.addEventListener("submit", async (e) => {
                         e.preventDefault();
+                        
+                       
+                        const btn = loginForm.querySelector('button');
+                        const originalText = btn.innerText;
+                        btn.innerText = "Logging in... Please wait...";
+                        btn.disabled = true;
+
                         const email = loginForm.querySelector('input[type="email"]').value;
                         const password = loginForm.querySelector('input[type="password"]').value;
-        
+                        
                         try {
                             const res = await fetch(this.baseUrl + "/api/login", {
                                 method: "POST",
@@ -656,24 +672,36 @@
                                 body: JSON.stringify({ email, password }),
                             });
                             const data = await res.json();
-                            if (data.error) alert("Login failed: " + data.error);
-                            else {
-                                alert("Login successful!");
-                                this.navigate("dashboard");
+                            if (data.error) alert("Galti: " + data.error);
+                            else { 
+                                alert("Login Successful!"); 
+                                this.navigate("dashboard"); 
                             }
-                        } catch (err) {
-                            alert("Error occured during login.");
+                        } catch (err) { 
+                            alert("Server Down ya Connecting... Dubara try karein!"); 
+                        } finally {
+                            
+                            btn.innerText = originalText;
+                            btn.disabled = false;
                         }
                     });
                 }
         
+                //-------------------------------- SIGNUP Logic--------------------------
                 if (signupForm) {
                     signupForm.addEventListener("submit", async (e) => {
                         e.preventDefault();
+
+                      
+                        const btn = signupForm.querySelector('button');
+                        const originalText = btn.innerText;
+                        btn.innerText = "Creating Account... Please wait...";
+                        btn.disabled = true;
+
                         const name = signupForm.querySelector('input[type="text"]').value;
                         const email = signupForm.querySelector('input[type="email"]').value;
                         const password = signupForm.querySelector('input[type="password"]').value;
-        
+                        
                         try {
                             const res = await fetch(this.baseUrl + "/api/signup", {
                                 method: "POST",
@@ -681,13 +709,16 @@
                                 body: JSON.stringify({ name, email, password }),
                             });
                             const data = await res.json();
-                            if (data.error) alert("Signup failed: " + data.error);
-                            else {
-                                alert("Signup successful! You can now login.");
-                                this.navigate("login");
+                            if (data.error) alert("Signup Fail: " + data.error);
+                            else { 
+                                alert("Account Ban Gaya! Ab Login Karo."); 
+                                this.navigate("login"); 
                             }
-                        } catch (err) {
-                            alert("Error occured during signup.");
+                        } catch (err) { 
+                            alert("Backend Connect Nahi Hua!"); 
+                        } finally {
+                            btn.innerText = originalText;
+                            btn.disabled = false;
                         }
                     });
                 }
@@ -700,6 +731,9 @@
                 }
             }, 0);
         },
+
+
+        //--------------analysis Form page LOGIC ---------------------
 
         async handleAnalysis() {
             const btn = document.querySelector("#analysisForm button");
@@ -751,7 +785,9 @@
                 btn.innerText = originalText;
                 btn.disabled = false;
             }
-        },
+        }, 
+
+        //--------------------REPORT DOWNLOAD---------------
 
         downloadReport() {
             const { jsPDF } = window.jspdf;
@@ -801,8 +837,8 @@
             });
             doc.save("LinkedIn_Profile_Analysis_Report.pdf");
         },
-        //yaha tk
-            
+        
+            //---------------DASHBOARD-------------------------------------------------
             renderDashboard() {
                 return `
                 <div style="background: var(--bg-light); min-height: 100vh; padding: 2rem;">
@@ -849,6 +885,7 @@
                 </div>
                 `;
             },
+            //-----------------analysis Form page -------------------------
             renderUpload() {
                 return `
                 <div style="background: var(--bg-light); min-height: 100vh; padding: 2rem;">
@@ -871,7 +908,9 @@
                     </div>
                 </div>
                 `;
-            },
+            }, 
+
+              // -------------------------- RESULT PAGE-----------------------------
             renderResults() {
                 const r = this.analysisResults;
                 const scoreImprovement = r.scoreAfter - r.scoreBefore;

@@ -48,7 +48,7 @@ client = genai.Client(api_key=api_key)
 def home():
     return "<h1>Backend is Running Successfully on Render!</h1><p>Database status check: /test-db</p>"
 
-# 2. DATABASE TEST ROUTE (Green Signal check karne ke liye)
+# 2. DATABASE TEST ROUTE 
 @app.route('/test-db')
 def test_db():
     if users is None:
