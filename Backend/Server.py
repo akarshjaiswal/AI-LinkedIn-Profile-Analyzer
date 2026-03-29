@@ -4,7 +4,7 @@ from flask import Flask, request, jsonify, session
 from flask_pymongo import PyMongo
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS
-from google import genai  # Modern Gemini SDK (2026)
+from google import genai 
 
 app = Flask(__name__)
 
@@ -37,13 +37,13 @@ with app.app_context():
 
 # --- GEMINI AI SETUP ---
 # API Key Render ke Environment Variables se aayegi
-api_key = os.environ.get("GEMINI_API_KEY", "AIzaSyD4yQNY2BSAXMWzK1WG2VAdeY6sMkDvO8o")
+api_key = os.environ.get("GEMINI_API_KEY")
 client = genai.Client(api_key=api_key)
 
 
-# ------------------- API ROUTES (All Routes must be ABOVE app.run) -------------------
+# ------------------- API ROUTES  -------------------
 
-# 1. HOME ROUTE (Testing ke liye)
+#1. HOME ROUTE (Testing ke liye)
 @app.route('/')
 def home():
     return "<h1>Backend is Running Successfully on Render!</h1><p>Database status check: /test-db</p>"
@@ -123,7 +123,7 @@ def analyze():
     """
 
     try:
-        # Gemini 2.5 Flash call
+        # Gemini  Flash call
         response = client.models.generate_content(
             model="gemini-2.5-flash",
             contents=structured_prompt,
@@ -141,8 +141,8 @@ def logout():
     return jsonify({'message': 'Logged out successfully'}), 200
 
 
-# ------------------- SERVER START (Hamesha File ke Aakhir mein) -------------------
+# ------------------- SERVER START  -------------------
 if __name__ == "__main__":
-    # Render PORT dynamicly set karta hai
+    # Render PORT dynamicly set karega
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)

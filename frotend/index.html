@@ -458,6 +458,8 @@
             currentPage: "landing",
             user: null,
             analysisResults: null,
+            baseUrl: "https://ai-linkedin-profile-analyzer.onrender.com",
+            
             init() {
                 this.setupEventListeners();
                 this.render();
@@ -503,131 +505,6 @@
                     default:
                         root.innerHTML = this.renderLanding();
                 }
-            },
-            attachFormListeners() {
-                setTimeout(() => {
-                    const loginForm = document.getElementById("loginForm");
-                    const signupForm = document.getElementById("signupForm");
-                    const analysisForm = document.getElementById("analysisForm");
-                    if (loginForm)
-                        loginForm.addEventListener("submit", (e) => {
-                            e.preventDefault();
-                            this.navigate("dashboard");
-                        });
-                    if (signupForm)
-                        signupForm.addEventListener("submit", (e) => {
-                            e.preventDefault();
-                            this.navigate("dashboard");
-                        });
-                    if (analysisForm)
-                        analysisForm.addEventListener("submit", (e) => {
-                            e.preventDefault();
-                            this.handleAnalysis();
-                        });
-                }, 0);
-            },
-
-            
-            async handleAnalysis() {
-                const btn = document.querySelector("#analysisForm button");
-                const originalText = btn.innerText;
-                btn.innerText = "AI is Analyzing... Please wait...";
-                btn.disabled = true;
-            
-                // Form se data uthana
-                const profileData = {
-                    profile_text: `
-                        Name: ${document.getElementById("name").value}
-                        Headline: ${document.getElementById("headline").value}
-                        About: ${document.getElementById("about").value}
-                        Skills: ${document.getElementById("skills").value}
-                        Experience: ${document.getElementById("experience").value}
-                    `
-                };
-            
-                try {
-                    const res = await fetch("http://127.0.0.1:5000/api/analyze", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(profileData),
-                    });
-            
-                    const data = await res.json();
-            
-                    if (data.error) {
-                        alert("AI Error: " + data.error);
-                    } else {
-                        // Backend se aaye huye JSON data ko yahan set kar rahe hain
-                        this.analysisResults = {
-                            scoreBefore: data.score_before,
-                            scoreAfter: data.score_after,
-                            problems: data.problems,
-                            suggestions: data.suggestions,
-                            enhanced: {
-                                headline: data.enhanced_headline,
-                                about: data.enhanced_about,
-                                skills: data.enhanced_skills,
-                                experience: data.enhanced_experience
-                            }
-                        };
-                        this.navigate("results");
-                    }
-                } catch (err) {
-                    alert("Server connect nahi ho raha! Check karein Server.py chal raha hai ya nahi.");
-                } finally {
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                }
-            },
-
-            
-            downloadReport() {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                const r = this.analysisResults;
-                let y = 10;
-                doc.setFontSize(18);
-                doc.text("LinkedIn Profile Analysis Report", 10, y);
-                y += 10;
-                doc.setFontSize(14);
-                doc.text("Enhanced Content:", 10, y);
-                y += 8;
-                doc.setFontSize(12);
-                doc.text(`Headline: ${r.enhanced.headline}`, 10, y);
-                y += 8;
-                doc.text("About:", 10, y);
-                y += 6;
-                const aboutLines = doc.splitTextToSize(r.enhanced.about, 180);
-                doc.text(aboutLines, 10, y);
-                y += aboutLines.length * 7;
-                doc.text(`Skills: ${r.enhanced.skills}`, 10, y);
-                y += 8;
-                doc.text("Experience:", 10, y);
-                y += 6;
-                const expLines = doc.splitTextToSize(r.enhanced.experience, 180);
-                doc.text(expLines, 10, y);
-                y += expLines.length * 7;
-                y += 5;
-                doc.setFontSize(14);
-                doc.text("Detected Problems:", 10, y);
-                y += 8;
-                doc.setFontSize(12);
-                r.problems.forEach((p) => {
-                    const probLines = doc.splitTextToSize("- " + p, 180);
-                    doc.text(probLines, 10, y);
-                    y += probLines.length * 7;
-                });
-                y += 5;
-                doc.setFontSize(14);
-                doc.text("Suggestions:", 10, y);
-                y += 8;
-                doc.setFontSize(12);
-                r.suggestions.forEach((s) => {
-                    const sugLines = doc.splitTextToSize("- " + s, 180);
-                    doc.text(sugLines, 10, y);
-                    y += sugLines.length * 7;
-                });
-                doc.save("LinkedIn_Profile_Analysis_Report.pdf");
             },
             renderLanding() {
                 return `
@@ -758,6 +635,7 @@
                 </div>
                 `;
             },
+
            //backend conect 
            attachFormListeners() {
             setTimeout(() => {
@@ -772,7 +650,7 @@
                         const password = loginForm.querySelector('input[type="password"]').value;
         
                         try {
-                            const res = await fetch("http://127.0.0.1:5000/api/login", {
+                            const res = await fetch(this.baseUrl + "/api/login", {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({ email, password }),
@@ -797,7 +675,7 @@
                         const password = signupForm.querySelector('input[type="password"]').value;
         
                         try {
-                            const res = await fetch("http://127.0.0.1:5000/api/signup", {
+                            const res = await fetch(this.baseUrl + "/api/signup", {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({ name, email, password }),
@@ -821,6 +699,107 @@
                     });
                 }
             }, 0);
+        },
+
+        async handleAnalysis() {
+            const btn = document.querySelector("#analysisForm button");
+            const originalText = btn.innerText;
+            btn.innerText = "AI is Analyzing... Please wait...";
+            btn.disabled = true;
+        
+            // Form se data uthana
+            const profileData = {
+                profile_text: `
+                    Name: ${document.getElementById("name").value}
+                    Headline: ${document.getElementById("headline").value}
+                    About: ${document.getElementById("about").value}
+                    Skills: ${document.getElementById("skills").value}
+                    Experience: ${document.getElementById("experience").value}
+                `
+            };
+        
+            try {
+                const res = await fetch(this.baseUrl + "/api/analyze", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(profileData),
+                });
+        
+                const data = await res.json();
+        
+                if (data.error) {
+                    alert("AI Error: " + data.error);
+                } else {
+                    // Backend se aaye huye JSON data ko yahan set kar rahe hain
+                    this.analysisResults = {
+                        scoreBefore: data.score_before,
+                        scoreAfter: data.score_after,
+                        problems: data.problems,
+                        suggestions: data.suggestions,
+                        enhanced: {
+                            headline: data.enhanced_headline,
+                            about: data.enhanced_about,
+                            skills: data.enhanced_skills,
+                            experience: data.enhanced_experience
+                        }
+                    };
+                    this.navigate("results");
+                }
+            } catch (err) {
+                alert("Server connect nahi ho raha! Check karein Server.py chal raha hai ya nahi.");
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        },
+
+        downloadReport() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const r = this.analysisResults;
+            let y = 10;
+            doc.setFontSize(18);
+            doc.text("LinkedIn Profile Analysis Report", 10, y);
+            y += 10;
+            doc.setFontSize(14);
+            doc.text("Enhanced Content:", 10, y);
+            y += 8;
+            doc.setFontSize(12);
+            doc.text(`Headline: ${r.enhanced.headline}`, 10, y);
+            y += 8;
+            doc.text("About:", 10, y);
+            y += 6;
+            const aboutLines = doc.splitTextToSize(r.enhanced.about, 180);
+            doc.text(aboutLines, 10, y);
+            y += aboutLines.length * 7;
+            doc.text(`Skills: ${r.enhanced.skills}`, 10, y);
+            y += 8;
+            doc.text("Experience:", 10, y);
+            y += 6;
+            const expLines = doc.splitTextToSize(r.enhanced.experience, 180);
+            doc.text(expLines, 10, y);
+            y += expLines.length * 7;
+            y += 5;
+            doc.setFontSize(14);
+            doc.text("Detected Problems:", 10, y);
+            y += 8;
+            doc.setFontSize(12);
+            r.problems.forEach((p) => {
+                const probLines = doc.splitTextToSize("- " + p, 180);
+                doc.text(probLines, 10, y);
+                y += probLines.length * 7;
+            });
+            y += 5;
+            doc.setFontSize(14);
+            doc.text("Suggestions:", 10, y);
+            y += 8;
+            doc.setFontSize(12);
+            r.suggestions.forEach((s) => {
+                const sugLines = doc.splitTextToSize("- " + s, 180);
+                doc.text(sugLines, 10, y);
+                y += sugLines.length * 7;
+            });
+            doc.save("LinkedIn_Profile_Analysis_Report.pdf");
         },
         //yaha tk
             
